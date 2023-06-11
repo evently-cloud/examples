@@ -4,7 +4,7 @@ import {SendToEvently} from "./index"
 
 
 export function createEventlyConnection(poolSize: number): SendToEvently {
-  const urlPrefix = env("EVENTLY_URL")
+  const urlPrefix = env("EVENTLY_BOOKMARK", 'https://preview.evently.cloud')
 
   const authToken = `Bearer ${env("EVENTLY_TOKEN")}`
   console.info('Connecting to %s with Authorization: %s', urlPrefix, authToken)

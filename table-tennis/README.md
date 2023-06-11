@@ -9,7 +9,7 @@ This is an application that stress-tests evently by creating thousands of realis
 2. Create an env file at the root of the module called `evently.env` with the following properties:
 
    ```shell
-   EVENTLY_URL=https://preview.evently.cloud
+   EVENTLY_BOOKMARK=https://preview.evently.cloud
    EVENTLY_ONLINE=true
    EVENTLY_TOKEN=<your-token-here>
    EVENTLY_RESET_LEDGER=false
