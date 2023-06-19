@@ -47,15 +47,8 @@ async function selectEvents(sender: SendToEvently, type: string, selector: objec
   }
 
   let lineCount = 0
-  for await (let line of linesIterator(responseStream)) {
+  for await (let data of jsonIterator(responseStream)) {
     lineCount++
-    let data
-    try {
-      data = JSON.parse(line)
-    } catch (err) {
-      console.error(`Could not parse line: ${line}`)
-      throw err
-    }
     if (data.mark) {
       result.selectorId = data.selectorId
       result.mark = data.mark
@@ -78,7 +71,7 @@ async function selectEvents(sender: SendToEvently, type: string, selector: objec
 }
 
 
-async function* linesIterator(reader: Readable): AsyncGenerator<string> {
+async function* jsonIterator(reader: Readable): AsyncGenerator<any> {
   reader.setEncoding("utf8")
   // Stream chunks are not broken along JSON lines, so use partial to store remainder text between chunks.
   let partial = ""
@@ -89,11 +82,18 @@ async function* linesIterator(reader: Readable): AsyncGenerator<string> {
     partial = lines.pop() ?? ""
 
     for (const line of lines) {
-      yield line
+      yield parseJson(line)
     }
   }
 
   if (partial) {
-    yield partial
+    yield parseJson(partial)
+  }
+}
+
+
+function parseJson(line: string): any {
+  if (line) {
+    return JSON.parse(line)
   }
 }
