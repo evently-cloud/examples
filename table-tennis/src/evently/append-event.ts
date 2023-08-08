@@ -89,6 +89,7 @@ async function appendEvent(sender:      SendToEvently,
   if (statusCode == 201) {
     return {
       status:  Result.SUCCESS,
+      // @ts-ignore
       message: eventlyResponse.eventId
     }
   }
@@ -98,7 +99,7 @@ async function appendEvent(sender:      SendToEvently,
   if (statusCode == 409) {
     return {
       status:   Result.RACE,
-      message: eventlyResponse
+      message: eventlyResponse as string
     }
   }
 
