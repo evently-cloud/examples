@@ -7,7 +7,7 @@ export async function registerPlayer(eventSink: EventSink, name: string, country
   const key = keyify(name)
   const entity = new PlayerEntity(key)
 
-  await eventSink(new PlayerRegistered(entity, name, country), `$.name?(@=="${name}")`)
+  await eventSink(new PlayerRegistered(entity, name, country), {query: "$.name?(@==$name)", vars: {name}})
 
   return key
 }

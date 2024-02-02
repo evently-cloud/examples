@@ -1,4 +1,4 @@
-import {BaseEvent} from "./types"
+import {AtomicQuery, BaseEvent} from "./types"
 
 
 /**
@@ -8,6 +8,6 @@ export type SinkProvider = (shard: string) => Promise<EventSink>
 
 /**
  * Sends Events with the option to declare the event is unique to the entity, so only send event if the entity
- * does not already have the named event with the unique filter statement.
+ * does not already have the named event with the unique atomic query.
  */
-export type EventSink = (event: BaseEvent, unique?: string) => Promise<void>
+export type EventSink = (event: BaseEvent, atomic?: AtomicQuery) => Promise<void>

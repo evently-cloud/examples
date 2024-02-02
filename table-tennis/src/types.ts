@@ -16,3 +16,10 @@ export interface PersistedEvent {
   eventId:  string
   data:     object
 }
+
+export type AtomicQuery = {
+  query:  string
+  vars: {
+    [k: string]: any
+  }
+}

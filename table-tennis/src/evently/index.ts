@@ -28,17 +28,17 @@ async function initSink(measure: any, evently: EventlyClient, shard: string): Pr
   const replayTag = `select(${shard})`
   const appendTag = `append(${shard})`
 
-  return async (event, unique) => {
+  return async (event, atomic) => {
     const entityKey = entityCacheKey(event.entity)
     measure.start(replayTag)
     try {
       let selectorQuery;
-      if (unique) {
+      if (atomic) {
         const {entity, event: eventName} = event
         selectorQuery = {
           data: {
             [entity.name]: {
-             [eventName]: unique
+             [eventName]: atomic
             }
           }
         } as object
@@ -46,8 +46,8 @@ async function initSink(measure: any, evently: EventlyClient, shard: string): Pr
         selectorQuery = event.entity
       }
 
-      const {events, ...selector} = unique
-        ? await evently.filterEvents(selectorQuery as object)
+      const {events, ...selector} = atomic
+        ? await evently.filterEvents(selectorQuery)
         : await evently.replayEvents(selectorQuery as BaseEntity)
 
       selectorMap.set(entityKey, selector)
