@@ -1,34 +1,32 @@
-import {EntityEventType} from "./evently-client"
+import {BaseEvent, EntityConstructor} from "../types"
 import {SendToEvently} from "./index"
 
 
-export function registerAllEvents(sender: SendToEvently) {
-  return Promise.all([
-    registerEvents(sender,"🤾", "🤾-registered"),
-    registerEvents(sender, "🏅", "🏅-created", "🏅-completed"),
-    registerEvents(sender, "match", "match-started", "match-completed"),
-    registerEvents(sender, "game",
-      "game-started",
-      "🏓-served",
-      "🏓-out",
-      "🏓-returned",
-      "game-completed")])
+
+type EventConstructor<T extends BaseEvent = BaseEvent> = (new (...args: any[]) => T) & {
+  name: string
+  entityTypes: readonly EntityConstructor[]
 }
 
-function registerEvents(sender: SendToEvently, entity: string, ...events: string[]) {
-  return Promise.all(events.map((event) => registerEventType(sender, {entity, event})))
+export async function registerAllEvents(sender: SendToEvently, ...events: EventConstructor[]) {
+  return Promise.all(events.map(event => registerEvent(sender, event)))
 }
 
-async function registerEventType(sender: SendToEvently, entityEventType: EntityEventType) {
+async function registerEvent(sender: SendToEvently, eventType: EventConstructor) {
+  const body = {
+    event: eventType.name,
+    entities: eventType.entityTypes.map(type => type.name)
+  }
+
   const response = await sender({
     path:   "/registry/register-event",
     method: "POST",
-    body:   JSON.stringify(entityEventType)
+    body:   JSON.stringify(body)
   })
 
   const result = await response.body.text()
 
   if (response.statusCode !== 201) {
-    console.info("Could not register Event type %j: %j", entityEventType, result)
+    console.info("Could not register Event type %j: %j", eventType, result)
   }
 }

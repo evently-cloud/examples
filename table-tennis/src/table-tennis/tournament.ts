@@ -21,7 +21,7 @@
  */
 
 import {EventSink} from "../event-sink"
-import {TournamentCompleted, TournamentCreated, TournamentEntity} from "./events.js"
+import {PlayerEntity, TournamentCompleted, TournamentCreated, TournamentEntity} from "./events.js"
 import {playMatch} from "./match-play.js"
 import {registerPlayer} from "./player-registration.js"
 import {chance, keyify, Match} from "./table-tennis.js"
@@ -33,32 +33,38 @@ export async function runTournament(eventSink: EventSink): Promise<void> {
   console.log(`starting ${tourneyName}, registering players...`)
 
   // can't Promise.all() with benchmarks.
-  const playerKeys = []
+  const players: PlayerEntity[] = []
   for (let p = 0; p < 16; p++) {
     const key = await registerPlayer(eventSink, chance.name(), chance.country())
-    playerKeys.push(key)
+    players.push(key)
   }
 
-  const tourneyKey = keyify(tourneyName)
-  console.log(`Tournament key: ${tourneyKey}`)
-  const entity: TournamentEntity = new TournamentEntity(tourneyKey)
-  await eventSink(new TournamentCreated(entity, tourneyName, playerKeys))
+  // shuffle players
+  for (let i = players.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * players.length);
+    [players[i], players[j]] = [players[j], players[i]];
+  }
+
+  const tournamentKey = keyify(tourneyName)
+  console.log(`Tournament key: ${tournamentKey}`)
+  const tournament: TournamentEntity = new TournamentEntity(tournamentKey)
+  await eventSink(new TournamentCreated(tourneyName, tournament, players))
 
   let matchNumber = 1
-  while (playerKeys.length > 1) {
+  while (players.length > 1) {
     const matches: Match[] = []
-    for (let p = 0; p < playerKeys.length; p += 2) {
-      matches.push({players: [playerKeys[p], playerKeys[p + 1]]})
+    for (let p = 0; p < players.length; p += 2) {
+      matches.push({players: [players[p], players[p + 1]]})
     }
 
     // can't Promise.all() with benchmarks.
-    playerKeys.length = 0
+    players.length = 0
     for (let match of matches) {
-      const w = await playMatch(eventSink, match, tourneyKey, matchNumber++)
-      playerKeys.push(w)
+      const w = await playMatch(eventSink, match, tournament, matchNumber++)
+      players.push(w)
     }
   }
 
   // last player is the winner
-  await eventSink(new TournamentCompleted(entity, playerKeys[0]))
+  await eventSink(new TournamentCompleted(tournament, players[0]))
 }

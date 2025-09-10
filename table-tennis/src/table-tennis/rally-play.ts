@@ -33,14 +33,14 @@ async function rallyReturn(eventSink: EventSink,
 function serveBall(game:    GameEntity,
                    server:  Player): BallServed | BallOut {
   return chance.bool({likelihood: 60})
-    ? new BallServed(game, server)
-    : new BallOut(game, server)
+    ? new BallServed(server, game)
+    : new BallOut(server, game)
 }
 
 function returnBall(game:   GameEntity,
                     player: Player): BallReturned | BallOut {
   return chance.bool({likelihood: 50})
-    ? new BallReturned(game, player)
-    : new BallOut(game, player)
+    ? new BallReturned(player, game)
+    : new BallOut(player, game)
 }
 

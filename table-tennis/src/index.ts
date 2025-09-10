@@ -4,8 +4,8 @@ import * as Evently from "./evently/index.js"
 import {runTournament} from "./table-tennis/tournament.js"
 
 import {createRequire} from "node:module";
-const require = createRequire(import.meta.url);
 
+const require = createRequire(import.meta.url);
 const PerformanceMeasure = require("performance-measure")
 
 
@@ -19,7 +19,7 @@ async function playParallelTournaments(tourneys: number) {
 
   await Promise.all(plays)
 
-  console.log(measure.print())
+  measure.print()
 }
 
 async function playTourney(sinkProvider: SinkProvider, tourney: number) {

@@ -1,4 +1,4 @@
-import {BaseEntity, BaseEvent, PersistedEvent} from "../types"
+import {AppendableEvent, JsonpathQuery, PersistedEvent, SelectorQuery} from "../types"
 
 export interface AppendResult {
   status:   Result
@@ -11,23 +11,13 @@ export enum Result {
   ERROR
 }
 
-export interface EntityEventType {
-  entity: string
-  event:  string
-}
-
-export interface Selector {
-  selectorId: string
-  mark:       string
-}
-
-export interface SelectorResponse extends Selector {
-  events:     PersistedEvent[]
+export interface SelectorResponse {
+  events:   PersistedEvent[]
+  selector: Partial<SelectorQuery>
 }
 
 export interface EventlyClient {
-  replayEvents(entity: BaseEntity): Promise<SelectorResponse>
-  filterEvents(filter: object): Promise<SelectorResponse>
-  appendSerialEvent(evt: BaseEvent, previous: string): Promise<AppendResult>
-  appendSelectorEvent(evt: BaseEvent, selector: Selector): Promise<AppendResult>
+  replayEvents(entities: Record<string, string[]>): Promise<SelectorResponse>
+  filterEvents(filter: Record<string, JsonpathQuery>): Promise<SelectorResponse>
+  appendEvent(event: AppendableEvent): Promise<AppendResult>
 }

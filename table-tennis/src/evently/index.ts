@@ -2,10 +2,19 @@ import env from "env-sanitize"
 import {Dispatcher} from "undici"
 
 import {EventSink, SinkProvider} from "../event-sink"
-import {BaseEntity} from "../types"
-import {appendAtomicEvent, appendSerialEvent} from "./append-event.js"
+import {
+  BallOut,
+  BallReturned,
+  BallServed,
+  GameCompleted,
+  GameStarted,
+  MatchCompleted,
+  MatchStarted, PlayerRegistered, TournamentCompleted, TournamentCreated
+} from "../table-tennis/events"
+import {BaseEntity, BaseEvent, JsonpathQuery} from "../types"
+import {appendAtomicEvent} from "./append-event.js"
 import {createEventlyConnection} from "./connect-evently.js"
-import {EventlyClient, Result, Selector} from "./evently-client.js"
+import {EventlyClient, Result, SelectorResponse} from "./evently-client.js"
 import {registerAllEvents} from "./register-events.js"
 import {filterEvents, replayEvents} from "./select-events.js"
 
@@ -18,70 +27,83 @@ export async function sinkProvider(measure: any, tourneyCount: number): Promise<
   return (shard) => initSink(measure, evently, shard)
 }
 
-function entityCacheKey({name,key}: BaseEntity): string {
-  return `${name}*${key}`
-}
 
 async function initSink(measure: any, evently: EventlyClient, shard: string): Promise<EventSink> {
-  const previousEventIdMap = new Map<string, string>()
-  const selectorMap = new Map<string, Selector>()
-  const replayTag = `select(${shard})`
+  const selectTag = `select(${shard})`
   const appendTag = `append(${shard})`
 
+
   return async (event, atomic) => {
-    const entityKey = entityCacheKey(event.entity)
-    measure.start(replayTag)
-    try {
-      let selectorQuery;
-      if (atomic) {
-        const {entity, event: eventName} = event
-        selectorQuery = {
-          data: {
-            [entity.name]: {
-             [eventName]: atomic
-            }
-          }
-        } as object
-      } else {
-        selectorQuery = event.entity
-      }
+    measure.start(selectTag)
 
-      const {events, ...selector} = atomic
-        ? await evently.filterEvents(selectorQuery)
-        : await evently.replayEvents(selectorQuery as BaseEntity)
+    const replayPromise = atomic
+      ? simulateFilterReplay(evently, event, atomic)
+      : simulateEntitiesReplay(evently, event)
 
-      selectorMap.set(entityKey, selector)
-
-      if (events.length) {
-        const lastEventId = events[events.length - 1].eventId
-        previousEventIdMap.set(entityKey, lastEventId)
-      }
-    } finally {
-      measure.end(replayTag)
-    }
+    const replayResult = await replayPromise
+      .finally(() => measure.end(selectTag))
 
     measure.start(appendTag)
-    let result
-    try {
-      const previousEventId = previousEventIdMap.get(entityKey)
-      if (previousEventId) {
-        result = await evently.appendSerialEvent(event, previousEventId)
-      } else {
-        const selector = selectorMap.get(entityKey)
-        if (selector) {
-          result = await evently.appendSelectorEvent(event, selector)
-        } else {
-          throw new Error(`no selectorId for ${entityKey}`)
-        }
-      }
-    } finally {
-      measure.end(appendTag)
-      if (online && result?.status === Result.SUCCESS) {
-        console.info("Appended %s/%s  ⤎ eventId: %s", event.entity.name, event.event, result.message)
-      }
+
+    const {status, message} = await handleAppendAtomicEvent(evently, event, replayResult)
+      .finally(() => measure.end(appendTag))
+
+
+    if (online && status === Result.SUCCESS) {
+      console.info("Appended %s  ⤎ eventId: %s", event.constructor.name, message)
     }
   }
 }
+
+
+// simulate replay events for a write model. In a real CQRS app, these events
+// would be folded into a data structure for the command to evaluate before appending.
+
+async function simulateFilterReplay(evently: EventlyClient, event: BaseEvent, atomic: JsonpathQuery) {
+  const query = {
+    [event.constructor.name]: atomic
+  }
+  return evently.filterEvents(query)
+}
+
+
+async function simulateEntitiesReplay(evently: EventlyClient, event: BaseEvent) {
+  const entities = entityArrayToRecord(event.entities)
+  return evently.replayEvents(entities)
+}
+
+
+async function handleAppendAtomicEvent(evently: EventlyClient, evt: BaseEvent, replayResult: SelectorResponse) {
+  const {events, selector: selectorIn} = replayResult
+  const selector = {
+    ...selectorIn,
+    after: events.at(-1)?.eventId
+  }
+  const entities = entityArrayToRecord(evt.entities)
+  const data = Object.getOwnPropertyNames(evt).reduce((acc, prop) => {
+    // @ts-ignore
+    acc[prop] = evt[prop]
+    return acc
+  }, {} as Record<string, unknown>)
+
+  const event = {
+    event: evt.constructor.name,
+    entities,
+    data,
+    selector
+  }
+
+  return evently.appendEvent(event)
+}
+
+function entityArrayToRecord(entities: BaseEntity[]): Record<string, string[]> {
+  return entities.reduce((acc, {constructor: {name}, key}) => ({
+    ...acc,
+    [name]: [...(acc[name] ?? []), key],
+  }), {} as Record<string, string[]>)
+}
+
+
 
 let evently: EventlyClient
 async function eventlyClient(poolSize: number): Promise<EventlyClient> {
@@ -91,18 +113,29 @@ async function eventlyClient(poolSize: number): Promise<EventlyClient> {
   return evently
 }
 
+
 async function initEvently(poolSize: number): Promise<EventlyClient> {
   const sender = createEventlyConnection(poolSize)
-
-  await registerAllEvents(sender)
+  // this assumes the ledger has been created
+  await registerAllEvents(sender,
+    PlayerRegistered,
+    TournamentCreated,
+    TournamentCompleted,
+    MatchStarted,
+    MatchCompleted,
+    GameStarted,
+    GameCompleted,
+    BallServed,
+    BallOut,
+    BallReturned
+  )
 
   await maybeResetLedger(sender)
 
   return {
-    replayEvents:        (e) => replayEvents(sender, e),
-    filterEvents:        (d) => filterEvents(sender, d),
-    appendSerialEvent:   (e, p) => appendSerialEvent(sender, e, p),
-    appendSelectorEvent: (e, s) => appendAtomicEvent(sender, e, s)
+    replayEvents: (e) => replayEvents(sender, e),
+    filterEvents: (d) => filterEvents(sender, d),
+    appendEvent:  (e) => appendAtomicEvent(sender, e)
   }
 }
 
@@ -113,8 +146,9 @@ export type SendToEvently = (request: Dispatcher.DispatchOptions) => Promise<Dis
 function maybeResetLedger(sender: SendToEvently) {
   const shouldReset = env("EVENTLY_RESET_LEDGER", (x) => x.asBoolean(), false)
   if (shouldReset) {
+    const ledgerId = env("EVENTLY_LEDGER_ID", "no-ledger_id-provided")
     return sender({
-      path:   "/ledgers/reset",
+      path:   `/ledgers/${ledgerId}/reset`,
       method: "POST",
       body:   "{}"
     })

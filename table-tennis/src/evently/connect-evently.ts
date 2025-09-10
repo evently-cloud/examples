@@ -1,12 +1,22 @@
 import env from "env-sanitize"
+import assert from "node:assert"
 import {Client, Dispatcher, Pool} from "undici"
 import {SendToEvently} from "./index"
 
 
 export function createEventlyConnection(poolSize: number): SendToEvently {
   const urlPrefix = env("EVENTLY_URL")
+  let token = env("EVENTLY_TOKEN", "")
+  if (!token) {
+    const ledgerId = env("EVENTLY_LEDGER_ID")
+    assert(ledgerId, "Cannot find or create an access token")
+    token = Buffer
+      .from(`{"roles":["client","registrar","admin"],"ledger":"${ledgerId}"}`)
+      .toString("base64url")
+  }
 
-  const authToken = `Bearer ${env("EVENTLY_TOKEN")}`
+  // token needs client and registrar roles, and admin role if resetting ledger
+  const authToken = `Bearer ${token}`
   console.info('Connecting to %s with Authorization: %s', urlPrefix, authToken)
 
   // set long timeouts for debugging.

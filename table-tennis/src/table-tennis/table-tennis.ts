@@ -1,4 +1,5 @@
 import Chance from "chance"
+import {PlayerEntity} from "./events"
 export const chance = Chance()
 
 
@@ -11,7 +12,7 @@ export interface Tournament {
 }
 
 export interface Match {
-  players: [string, string]
+  players: [PlayerEntity, PlayerEntity]
   winner?: string
 }
 

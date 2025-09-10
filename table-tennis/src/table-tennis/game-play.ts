@@ -1,31 +1,31 @@
 import {EventSink} from "../event-sink"
-import {GameCompleted, GameEntity, GameStarted} from "./events.js"
+import {GameCompleted, GameEntity, GameStarted, MatchEntity, PlayerEntity} from "./events.js"
 import {playRally} from "./rally-play.js"
 import {Game, oppositePlayer, Player} from "./table-tennis.js"
 
 
 export async function playGame(eventSink:   EventSink,
-                               matchKey:    string,
+                               match:       MatchEntity,
                                gameNumber:  number,
-                               players:     [string, string],
+                               players:     [PlayerEntity, PlayerEntity],
                                server:      Player): Promise<Game> {
 
-  const entity = new GameEntity(`${matchKey}_${gameNumber}`)
-  await eventSink(new GameStarted(entity, matchKey))
+  const game = new GameEntity(`${match.key}_${gameNumber}`)
+  await eventSink(new GameStarted(game, match))
 
   // play a rally
   const score = [0, 0]
   let rallyCount = 0
 
   while (true) {
-    const rally = await playRally(eventSink, entity, server)
+    const rally = await playRally(eventSink, game, server)
     rallyCount++
 
     // track score
     score[rally.winner]++
     const winner = maybeWinner(score)
-    if (typeof winner === "number") {
-      await eventSink(new GameCompleted(entity, players[winner]))
+    if (winner && Player[winner]) {
+      await eventSink(new GameCompleted(game, players[winner]))
       return {
         winner
       }

@@ -1,36 +1,23 @@
 import env from "env-sanitize"
 import {Readable} from "stream"
-import {BaseEntity} from "../types"
+import {JsonpathQuery, SelectorQuery} from "../types"
 import {SelectorResponse} from "./evently-client"
 import {SendToEvently} from "./index"
 
-interface EntityEventBody {
-  entity:   string
-  key:      string
-  event:    string
-  eventId:  string
-  data:     any
-}
 
 const eventlyOnline = env("EVENTLY_ONLINE", (x) => x.asBoolean(), false)
 
-export function filterEvents(sender: SendToEvently, filter: object): Promise<SelectorResponse> {
-  return selectEvents(sender, "filter", filter)
+export function filterEvents(sender: SendToEvently, events: Record<string, JsonpathQuery>): Promise<SelectorResponse> {
+  return selectEvents(sender, {events})
 }
 
-export function replayEvents(sender: SendToEvently, entity: BaseEntity): Promise<SelectorResponse> {
-  const {name, key} = entity
-  const data = {
-    entity: name,
-    keys:   [key]
-  }
-  return selectEvents(sender, "replay", data)
+export function replayEvents(sender: SendToEvently, entities: Record<string, string[]>): Promise<SelectorResponse> {
+  return selectEvents(sender, {entities})
 }
 
-
-async function selectEvents(sender: SendToEvently, type: string, selector: object): Promise<SelectorResponse> {
+async function selectEvents(sender: SendToEvently, selector: Partial<SelectorQuery>): Promise<SelectorResponse> {
   const response = await sender({
-    path:     `/selectors/${type}`,
+    path:     `/selectors`,
     method:   "POST",
     headers:  {
       Accept: "application/x-ndjson",
@@ -41,27 +28,14 @@ async function selectEvents(sender: SendToEvently, type: string, selector: objec
 
   const responseStream = response.body ?? Readable.from([])
   const result: SelectorResponse = {
-    selectorId: "",
-    mark:       "",
+    selector,
     events:     []
   }
 
   let lineCount = 0
   for await (let data of jsonIterator(responseStream)) {
     lineCount++
-    if (data.mark) {
-      result.selectorId = data.selectorId
-      result.mark = data.mark
-    } else {
-      const {entity: name, key, ...event}: EntityEventBody = data
-      result.events.push({
-        ...event,
-        entity: {
-          name,
-          key
-        }
-      })
-    }
+    result.events.push(data)
   }
   if (eventlyOnline) {
     console.info("        selected %s events", lineCount)
