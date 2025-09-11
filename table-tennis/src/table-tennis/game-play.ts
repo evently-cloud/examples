@@ -24,7 +24,7 @@ export async function playGame(eventSink:   EventSink,
     // track score
     score[rally.winner]++
     const winner = maybeWinner(score)
-    if (winner && Player[winner]) {
+    if (winner !== undefined) {
       await eventSink(new GameCompleted(game, players[winner]))
       return {
         winner
@@ -43,7 +43,7 @@ export async function playGame(eventSink:   EventSink,
   A game shall be won by the player or pair first scoring 11 points unless both players score 10 points,
   when the game shall be won by the first player subsequently gaining a lead of 2 points.
  */
-function maybeWinner([p1, p2]: number[]): Player | void {
+function maybeWinner([p1, p2]: number[]): Player | undefined {
   if (p1 >= 10 && p2 >= 10) {
     const lead = Math.abs(p1 - p2)
 

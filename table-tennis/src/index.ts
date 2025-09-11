@@ -19,7 +19,7 @@ async function playParallelTournaments(tourneys: number) {
 
   await Promise.all(plays)
 
-  measure.print()
+  console.info(measure.print())
 }
 
 async function playTourney(sinkProvider: SinkProvider, tourney: number) {

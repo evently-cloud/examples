@@ -28,16 +28,16 @@ export async function playMatch(eventSink:    EventSink,
   while (gameNumber <= 3 || Math.abs(wins[0] - wins[1]) < 2) {
     const game = await playGame(eventSink, matchEntity, gameNumber++, [player1, player2], server)
     wins[game.winner]++
-    console.info(`    Game ${gameNumber - 1} won by ${match.players[game.winner]}`)
+    console.info(`    Game ${gameNumber - 1} won by ${match.players[game.winner].key}`)
     server = oppositePlayer(server)
   }
 
   const winner = wins[Player.ONE] > wins[Player.TWO] ? Player.ONE : Player.TWO
-  const winnerKey = match.players[winner]
+  const winnerEntity = match.players[winner]
 
-  await eventSink(new MatchCompleted(matchEntity, winnerKey))
+  await eventSink(new MatchCompleted(matchEntity, winnerEntity))
 
-  console.info(`(${matchEntity.key}) Winner: ${winnerKey} ${wins[Player.ONE]} to ${wins[Player.TWO]}`)
-  return winnerKey
+  console.info(`(${matchEntity.key}) Winner: ${winnerEntity.key} ${wins[Player.ONE]} to ${wins[Player.TWO]}`)
+  return winnerEntity
 }
 

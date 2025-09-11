@@ -33,17 +33,19 @@ export async function appendAtomicEvent(sender:   SendToEvently,
     }
   }
 
-  console.warn(`${statusCode}: ${JSON.stringify(body)}`)
+  console.warn(`${statusCode}: ${JSON.stringify(eventlyResponse)}`)
 
   if (statusCode == 409) {
     return {
       status:   Result.RACE,
-      message: eventlyResponse as string
+      // @ts-ignore
+      message: eventlyResponse.message as string
     }
   }
 
   return {
     status:   Result.ERROR,
-    message: `append event http status: ${statusCode}, result: ${JSON.stringify(eventlyResponse)}`
+    // @ts-ignore
+    message: `append event http status: ${statusCode}, message: ${eventlyResponse.message}`
   }
 }

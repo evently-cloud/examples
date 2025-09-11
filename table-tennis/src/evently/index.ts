@@ -117,6 +117,8 @@ async function eventlyClient(poolSize: number): Promise<EventlyClient> {
 async function initEvently(poolSize: number): Promise<EventlyClient> {
   const sender = createEventlyConnection(poolSize)
   // this assumes the ledger has been created
+  await maybeResetLedger(sender)
+
   await registerAllEvents(sender,
     PlayerRegistered,
     TournamentCreated,
@@ -129,8 +131,6 @@ async function initEvently(poolSize: number): Promise<EventlyClient> {
     BallOut,
     BallReturned
   )
-
-  await maybeResetLedger(sender)
 
   return {
     replayEvents: (e) => replayEvents(sender, e),

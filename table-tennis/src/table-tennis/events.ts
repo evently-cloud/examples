@@ -98,7 +98,7 @@ export class GameEntity extends BaseEntity {
 
 export class GameStarted extends BaseEvent {
   static readonly name = "game-started"
-  static readonly entityTypes = [GameEntity, PlayerEntity]
+  static readonly entityTypes = [GameEntity, MatchEntity]
 
   constructor(game:  GameEntity,
               match: MatchEntity) {
