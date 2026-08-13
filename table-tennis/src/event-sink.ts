@@ -1,4 +1,4 @@
-import {JsonpathQuery, BaseEvent} from "./types"
+import {JsonpathQuery, BaseEvent} from "./types.ts"
 
 
 /**

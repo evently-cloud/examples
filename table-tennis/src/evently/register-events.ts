@@ -1,5 +1,5 @@
-import {BaseEvent, EntityConstructor} from "../types"
-import {SendToEvently} from "./index"
+import {BaseEvent, EntityConstructor} from "../types.ts"
+import {SendToEvently} from "./index.ts"
 
 
 

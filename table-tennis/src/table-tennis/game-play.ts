@@ -1,7 +1,7 @@
-import {EventSink} from "../event-sink"
-import {GameCompleted, GameEntity, GameStarted, MatchEntity, PlayerEntity} from "./events.js"
-import {playRally} from "./rally-play.js"
-import {Game, oppositePlayer, Player} from "./table-tennis.js"
+import {EventSink} from "../event-sink.ts"
+import {GameCompleted, GameEntity, GameStarted, MatchEntity, PlayerEntity} from "./events.ts"
+import {playRally} from "./rally-play.ts"
+import {Game, oppositePlayer, Player} from "./table-tennis.ts"
 
 
 export async function playGame(eventSink:   EventSink,

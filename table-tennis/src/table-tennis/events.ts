@@ -1,4 +1,4 @@
-import {BaseEntity, BaseEvent} from "../types.js"
+import {BaseEntity, BaseEvent} from "../types.ts"
 
 
 export class PlayerEntity extends BaseEntity {

@@ -1,6 +1,6 @@
-import {EventSink} from "../event-sink"
-import {PlayerEntity, PlayerRegistered} from "./events.js"
-import {keyify} from "./table-tennis.js"
+import {EventSink} from "../event-sink.ts"
+import {PlayerEntity, PlayerRegistered} from "./events.ts"
+import {keyify} from "./table-tennis.ts"
 
 
 export async function registerPlayer(eventSink: EventSink, name: string, country: string): Promise<PlayerEntity> {

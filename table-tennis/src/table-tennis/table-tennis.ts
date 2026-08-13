@@ -1,5 +1,7 @@
 import Chance from "chance"
-import {PlayerEntity} from "./events"
+
+import {PlayerEntity} from "./events.ts"
+
 export const chance = Chance()
 
 

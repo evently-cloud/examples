@@ -1,7 +1,7 @@
-import {EventSink} from "../event-sink"
-import {MatchCompleted, MatchEntity, MatchStarted, PlayerEntity, TournamentEntity} from "./events.js"
-import {playGame} from "./game-play.js"
-import {chance, Match, oppositePlayer, Player} from "./table-tennis.js"
+import {EventSink} from "../event-sink.ts"
+import {MatchCompleted, MatchEntity, MatchStarted, PlayerEntity, TournamentEntity} from "./events.ts"
+import {playGame} from "./game-play.ts"
+import {chance, Match, oppositePlayer, Player} from "./table-tennis.ts"
 
 
 export async function playMatch(eventSink:    EventSink,

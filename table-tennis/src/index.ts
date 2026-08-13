@@ -1,12 +1,9 @@
 import env from "env-sanitize"
-import {SinkProvider} from "./event-sink"
-import * as Evently from "./evently/index.js"
-import {runTournament} from "./table-tennis/tournament.js"
 
-import {createRequire} from "node:module";
-
-const require = createRequire(import.meta.url);
-const PerformanceMeasure = require("performance-measure")
+import {SinkProvider} from "./event-sink.ts"
+import * as Evently from "./evently/index.ts"
+import {PerformanceMeasure} from "./performance-measure.ts"
+import {runTournament} from "./table-tennis/tournament.ts"
 
 
 async function playParallelTournaments(tourneys: number) {
@@ -19,7 +16,7 @@ async function playParallelTournaments(tourneys: number) {
 
   await Promise.all(plays)
 
-  console.info(measure.print())
+  measure.print()
 }
 
 async function playTourney(sinkProvider: SinkProvider, tourney: number) {

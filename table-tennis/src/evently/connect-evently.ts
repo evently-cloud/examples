@@ -1,7 +1,8 @@
 import env from "env-sanitize"
 import assert from "node:assert"
 import {Client, Dispatcher, Pool} from "undici"
-import {SendToEvently} from "./index"
+
+import {SendToEvently} from "./index.ts"
 
 
 export function createEventlyConnection(poolSize: number): SendToEvently {

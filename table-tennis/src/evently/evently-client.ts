@@ -1,4 +1,4 @@
-import {AppendableEvent, JsonpathQuery, PersistedEvent, SelectorQuery} from "../types"
+import {AppendableEvent, JsonpathQuery, PersistedEvent, SelectorQuery} from "../types.ts"
 
 export interface AppendResult {
   status:   Result

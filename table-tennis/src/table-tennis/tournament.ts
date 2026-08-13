@@ -1,3 +1,8 @@
+import {EventSink} from "../event-sink.ts"
+import {PlayerEntity, TournamentCompleted, TournamentCreated, TournamentEntity} from "./events.ts"
+import {playMatch} from "./match-play.ts"
+import {registerPlayer} from "./player-registration.ts"
+import {chance, keyify, Match} from "./table-tennis.ts"
 
 
 /*
@@ -19,12 +24,6 @@
   Matches 31 & 32 are Semifinals
   Match 33 is the Final
  */
-
-import {EventSink} from "../event-sink"
-import {PlayerEntity, TournamentCompleted, TournamentCreated, TournamentEntity} from "./events.js"
-import {playMatch} from "./match-play.js"
-import {registerPlayer} from "./player-registration.js"
-import {chance, keyify, Match} from "./table-tennis.js"
 
 const kinds = ["Open", "Invitational", "Championship", "Games", "Tournament"]
 

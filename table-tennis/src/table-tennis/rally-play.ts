@@ -1,6 +1,6 @@
-import {EventSink} from "../event-sink"
-import {BallOut, BallReturned, BallServed, GameEntity} from "./events.js"
-import {chance, oppositePlayer, Player, Rally} from "./table-tennis.js"
+import {EventSink} from "../event-sink.ts"
+import {BallOut, BallReturned, BallServed, GameEntity} from "./events.ts"
+import {chance, oppositePlayer, Player, Rally} from "./table-tennis.ts"
 
 
 export async function playRally(eventSink:  EventSink,

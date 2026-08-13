@@ -1,7 +1,7 @@
 import env from "env-sanitize"
 import {Dispatcher} from "undici"
 
-import {EventSink, SinkProvider} from "../event-sink"
+import {EventSink, SinkProvider} from "../event-sink.ts"
 import {
   BallOut,
   BallReturned,
@@ -9,26 +9,30 @@ import {
   GameCompleted,
   GameStarted,
   MatchCompleted,
-  MatchStarted, PlayerRegistered, TournamentCompleted, TournamentCreated
-} from "../table-tennis/events"
-import {BaseEntity, BaseEvent, JsonpathQuery} from "../types"
-import {appendAtomicEvent} from "./append-event.js"
-import {createEventlyConnection} from "./connect-evently.js"
-import {EventlyClient, Result, SelectorResponse} from "./evently-client.js"
-import {registerAllEvents} from "./register-events.js"
-import {filterEvents, replayEvents} from "./select-events.js"
+  MatchStarted,
+  PlayerRegistered,
+  TournamentCompleted,
+  TournamentCreated
+} from "../table-tennis/events.ts"
+import {BaseEntity, BaseEvent, JsonpathQuery} from "../types.ts"
+import {appendAtomicEvent} from "./append-event.ts"
+import {createEventlyConnection} from "./connect-evently.ts"
+import {EventlyClient, Result, SelectorResponse} from "./evently-client.ts"
+import {PerformanceMeasure} from "../performance-measure.ts"
+import {registerAllEvents} from "./register-events.ts"
+import {filterEvents, replayEvents} from "./select-events.ts"
 
 
 const online = env("EVENTLY_ONLINE", (x) => x.asBoolean(), false)
 
 
-export async function sinkProvider(measure: any, tourneyCount: number): Promise<SinkProvider> {
+export async function sinkProvider(measure: PerformanceMeasure, tourneyCount: number): Promise<SinkProvider> {
   const evently = await eventlyClient(tourneyCount)
   return (shard) => initSink(measure, evently, shard)
 }
 
 
-async function initSink(measure: any, evently: EventlyClient, shard: string): Promise<EventSink> {
+async function initSink(measure: PerformanceMeasure, evently: EventlyClient, shard: string): Promise<EventSink> {
   const selectTag = `select(${shard})`
   const appendTag = `append(${shard})`
 

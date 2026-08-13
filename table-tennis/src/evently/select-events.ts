@@ -1,8 +1,9 @@
 import env from "env-sanitize"
 import {Readable} from "stream"
-import {JsonpathQuery, SelectorQuery} from "../types"
-import {SelectorResponse} from "./evently-client"
-import {SendToEvently} from "./index"
+
+import {JsonpathQuery, SelectorQuery} from "../types.ts"
+import {SelectorResponse} from "./evently-client.ts"
+import {SendToEvently} from "./index.ts"
 
 
 const eventlyOnline = env("EVENTLY_ONLINE", (x) => x.asBoolean(), false)

@@ -1,7 +1,8 @@
 import {createId} from "@paralleldrive/cuid2"
-import {AppendableEvent} from "../types"
-import {AppendResult, Result} from "./evently-client.js"
-import {SendToEvently} from "./index"
+
+import {AppendableEvent} from "../types.ts"
+import {AppendResult, Result} from "./evently-client.ts"
+import {SendToEvently} from "./index.ts"
 
 
 export async function appendAtomicEvent(sender:   SendToEvently,
